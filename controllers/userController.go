@@ -25,7 +25,28 @@ func HashPassword()
 
 func VerifyPassword()
 
-func Signup()
+func Signup() gin.HandlerFunc{
+	return func(c *gin.Context){
+		var ctx,cancel = context.WithTimeout(context.Background(), 100*time.Second)
+		defer cancel()
+		var user models.User
+		if err := c.BindJSON(&user); err != nil{
+			c.JSON(http.StatusBadRequest, gin.H{"error":err.Error()})
+			return
+		}
+		validationErr := validate.Struct(user)
+		if validationErr != nil{
+			c.JSON(http.StatusBadRequest, gin.H{"error":validationErr.Error()})
+			return
+		}
+
+		count, err := userCollection.CountDocuments(ctx, bson.M{"email":user.Email})
+		if err != nil{
+			log.Panic(err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error":"error occurred while checking the document"})
+		}
+	}
+}
 
 func Login()
 
