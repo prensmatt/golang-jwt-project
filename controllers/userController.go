@@ -101,6 +101,7 @@ func Login() gin.HandlerFunc{
 		if !passwordIsValid {
     c.JSON(http.StatusInternalServerError, gin.H{"error": msg})
     return
+	}
 
 	}
 }
