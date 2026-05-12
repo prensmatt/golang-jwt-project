@@ -136,7 +136,34 @@ func Login() gin.HandlerFunc{
 	}
 }
 
-func GetUsers()
+func GetUsers() gin.HandlerFunc{
+	return func(c *gin.Context){
+		if err := helper.CheckUserType(c, "ADMIN"); err != nil{
+			c.JSON(http.StatusBadRequest, gin.H{"error":err.Error()})
+			return
+		}
+		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+		defer cancel()
+
+		recordPerPage, err := strconv.Atoi(c.Query("recordPerPage"))
+		if err != nil || recordPerPage < 1{
+			recordPerPage = 10
+		}
+		page, err1 := strconv.Atoi(c.Query("page"))
+		if err1 != nil || page < 1{
+			page = 1
+		}
+
+		startIndex := (page - 1)*recordPerPage
+
+		matchStage := bson.D{{"$match", bson.D{{}}}}
+		groupStage := bson.D{{"$group", bson.D{
+				{"_id", bson.D{{"_id", "null"}}},
+				{"total_count", bson.D{{"$sum", 1}}},
+				{"data", bson.D{{"$push", "$$ROOT"}}},
+		}}}
+	}
+}
 
 func GetUser() gin.HandlerFunc{
 	return func(c *gin.Context){
